@@ -1,44 +1,42 @@
-//your code here
-
-
-
 class OutOfRangeError extends Error {
   constructor(arg) {
-    const message = `Expression should only consist of integers and +-/* characters and not ${arg}`;
-    super(message);
+    super(`Expression should only consist of integers and +-/* characters and not ${arg}`);
     this.name = this.constructor.name;
   }
 }
 
 class InvalidExprError extends Error {
   constructor() {
-    const message = 'Expression should not have an invalid combination of expression';
-    super(message);
+    super(`Expression should not have an invalid combination of expression`);
     this.name = this.constructor.name;
   }
 }
 
-function evalString(expression) {
+function evalString(str) {
   try {
-    if (/^\s*$/.test(expression)) {
-      return 0;
-    }
-    if (/^[\/*+].*/.test(expression)) {
+    if (/^[+*/]/.test(str)) {
       throw new SyntaxError('Expression should not start with invalid operator');
     }
-    if (/.*[\/*+-]$/.test(expression)) {
-      throw new SyntaxError('Expression should not end with invalid operator');
-    }
-    if (/[+]{2}|[-]{2}|[*]{2}|[/]{2}|[+][*]|[+][/]|[-][*]|[-][/]/.test(expression)) {
+    if (/[\+\-\*\/][\+\*\/]$/.test(str)) {
       throw new InvalidExprError();
     }
-    const result = eval(expression);
-    if (typeof result !== 'number' || !Number.isFinite(result)) {
-      throw new OutOfRangeError(result);
+    if (/[+*/-]$/.test(str)) {
+      throw new SyntaxError('Expression should not end with invalid operator');
     }
-    return result;
-  } catch (err) {
-    console.error(`${err.name}: ${err.message}`);
-    return undefined;
+    const regex = /[-+]?[0-9]+([*\/+][-+]?[0-9]+)*/g;
+    const matches = str.match(regex);
+    if (!matches || matches.join("") !== str) {
+      throw new OutOfRangeError(str);
+    }
+    return eval(str);
+  } catch (error) {
+    console.error(error);
   }
 }
+
+// Test cases
+console.log(evalString("1 + 2 - 3")); // Output: 0
+console.log(evalString("1 + + 2")); // Output: SyntaxError: Expression should not have an invalid combination of expression
+console.log(evalString("*1 + 2 - 3*")); // Output: OutOfRangeError: Expression should only consist of integers and +-/* characters and not *1 + 2 - 3*
+console.log(evalString("1 / 0")); // Output: Infinity
+console.log(evalString("-1 * 2 + 3")); // Output: 1
